@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
 
+const delay = async () => new Promise(resolve => setTimeout(resolve, 500))
 const fetchPosts = async () => {
+    await delay()
     const response = await fetch('https://jsonplaceholder.typicode.com/posts')
     if (!response.ok) {
         throw new Error('Failed to fetch posts')
@@ -9,20 +11,25 @@ const fetchPosts = async () => {
 }
 
 const Posts = () => {
-    const data = useQuery({
+    const {data, isLoading, isError, error} = useQuery({
         queryKey: ['posts'],
-        queryFn: fetchPosts
-    });
+        queryFn: fetchPosts,
+        // staleTime: 1000 * 60 * 5,
+        retry: false,
+        refetchOnWindowFocus: false,
+        
+    })
 
-    if (data.isLoading) {
-        return <div> posts are loading...</div>
+    if (isLoading) {
+        return <div className="text-2xl font-bold text-blue-500 text-center mt-10 animate-pulse"> posts are loading...</div>
+    }
+    if (isError) {
+        return <div className="text-2xl font-bold text-red-500 text-center mt-10 animate-pulse">
+            <p>{error.message}</p>
+        </div>
     }
 
-    if (data.error) {
-        return <div> error fetching posts</div>
-    }
-
-    const posts = data.data
+    const posts = data
 
     console.log('posts:', posts)
   return (
